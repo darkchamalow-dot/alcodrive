@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alcodrive — Prévention</title>
+<style>
+  :root{
+    --bg:#f7fafc;
+    --card:#ffffff;
+    --text:#0f172a;
+    --muted:#64748b;
+    --primary:#1e66f5;        /* bleu accessible */
+    --primary-ink:#ffffff;
+    --secondary:#f59e0b;      /* orange CTA */
+    --success:#34d399;        /* badge OK */
+    --danger:#ef4444;
+    --warning:#f59e0b;
+    --chip:#0b1220;
+    --chip-ink:#e5edff;
+    --ring:#dbeafe;
+    --border:#e5e7eb;
+    --dash:#fb923c;           /* prudence dash */
+    --grid:#e5e7eb;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+  .wrap{max-width:860px;margin:16px auto;padding:0 16px}
+  h1{font-size:32px;margin:8px 0 16px}
+  h2{font-size:24px;margin:24px 0 12px}
+  .card{background:var(--card);border-radius:18px;padding:16px 16px 4px;box-shadow:0 1px 0 rgba(15,23,42,.04),0 10px 30px rgba(2,6,23,.06);margin-bottom:16px;border:1px solid var(--border)}
+  label{display:block;font-weight:600;margin:14px 4px 6px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media (max-width:720px){.row,.row-3{grid-template-columns:1fr}}
+  select,input[type="number"],input[type="text"]{
+    width:100%;max-width:100%;appearance:none;
+    padding:14px 16px;border-radius:14px;border:1px solid var(--border);
+    outline:0;background:#fff;box-shadow:0 0 0 0 rgba(0,0,0,0);
+  }
+  select:focus,input:focus{box-shadow:0 0 0 3px var(--ring)}
+  .pills{display:flex;flex-wrap:wrap;gap:8px}
+  .pill{padding:10px 14px;border-radius:999px;border:1px solid var(--border);cursor:pointer;user-select:none}
+  .pill[data-active="1"]{background:var(--primary);color:var(--primary-ink);border-color:var(--primary)}
+  .muted{color:var(--muted);font-size:14px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border-radius:14px;border:0;cursor:pointer;font-weight:700}
+  .btn-primary{background:var(--primary);color:var(--primary-ink)}
+  .btn-ghost{background:#fff;color:var(--text);border:1px solid var(--border)}
+  .chips{display:flex;flex-direction:column;gap:10px;margin:12px 0}
+  .chip{display:flex;align-items:center;gap:10px;border-radius:28px;background:var(--chip);color:var(--chip-ink);padding:10px 16px}
+  .chip .x{margin-left:auto;inline-size:32px;block-size:32px;border-radius:50%;display:grid;place-items:center;background:#111827;color:#f8fafc;font-weight:700;cursor:pointer}
+  .badges{display:flex;flex-wrap:wrap;gap:10px}
+  .badge{padding:8px 12px;border-radius:14px;font-weight:700;display:inline-flex;align-items:center;gap:8px}
+  .ok{background:color-mix(in oklab, var(--success) 20%, white);color:#064e3b}
+  .warn{background:color-mix(in oklab, var(--warning) 18%, white);color:#7c2d12}
+  .nope{background:color-mix(in oklab, var(--danger) 16%, white);color:#7f1d1d}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
+  @media (max-width:720px){.grid{grid-template-columns:1fr}}
+  canvas{width:100%;height:360px;display:block}
+  .legend{font-size:14px;color:var(--muted);margin:8px 2px 2px}
+  .table{overflow:auto;border-top:1px solid var(--border);margin-top:12px}
+  .table table{width:100%;border-collapse:collapse;font-size:14px}
+  .table th,.table td{border-bottom:1px solid var(--border);padding:10px;text-align:left;white-space:nowrap}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Alcodrive — Prévention</h1>
+
+    <!-- 1) Profil -->
+    <div class="card" id="card-profil">
+      <h2>1) Profil</h2>
+      <div class="row">
+        <div>
+          <label>Poids (kg)</label>
+          <input id="poids" type="number" min="30" max="180" step="1" value="90">
+        </div>
+        <div>
+          <label>Heure de départ</label>
+          <select id="startTime"></select>
+          <div class="muted">Plage 00:00 → 23:45 (pas 15 min)</div>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Profil</label>
+          <div class="pills" id="profilPills">
+            <div class="pill" data-value="Homme">Homme</div>
+            <div class="pill" data-value="Femme">Femme</div>
+            <div class="pill" data-value="Prudence">Prudence</div>
+          </div>
+        </div>
+        <div>
+          <label>Permis probatoire ?</label>
+          <div class="pills" id="probPills">
+            <div class="pill" data-value="Oui">Oui</div>
+            <div class="pill" data-value="Non">Non</div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>A mangé récemment ?</label>
+          <div class="pills" id="foodPills">
+            <div class="pill" data-value="Oui">Oui</div>
+            <div class="pill" data-value="Non">Non</div>
+          </div>
+          <div class="muted">Absorption: 60 min si “Oui”, 30 min si “Non”.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2) Consommations -->
+    <div class="card">
+      <h2>2) Consommations</h2>
+      <div class="row-3">
+        <div>
+          <label>Heure</label>
+          <select id="drinkTime"></select>
+        </div>
+        <div>
+          <label>Catégorie</label>
+          <div class="pills" id="catPills">
+            <div class="pill" data-value="Bière">Bière</div>
+            <div class="pill" data-value="Vin">Vin</div>
+            <div class="pill" data-value="Cocktail">Cocktail</div>
+            <div class="pill" data-value="Alcool fort">Alcool fort</div>
+            <div class="pill" data-value="Sans alcool">Sans alcool</div>
+          </div>
+        </div>
+        <div>
+          <label>Quantité</label>
+          <select id="quantite"></select>
+          <div class="muted">Options adaptées à la catégorie.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Teneur alcool (% vol)</label>
+          <input id="deg" type="number" step="0.1" value="5">
+          <div class="muted">Immodifiable pour “Sans alcool”.</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn btn-primary" id="btnAdd">+ Ajouter</button>
+        <button class="btn btn-ghost" id="btnReset">Réinitialiser</button>
+      </div>
+
+      <div class="chips" id="chips"></div>
+
+      <div class="table" id="tableWrap" style="display:none">
+        <table id="tbl">
+          <thead>
+            <tr><th>Heure</th><th>Catégorie</th><th>Quantité</th><th>%</th><th>Volume (L)</th><th>Alcool (g)</th><th>Fin absorption</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="muted">Les consommations s’affichent en puces. Supprime via la croix.</div>
+    </div>
+
+    <!-- 3) Résultats -->
+    <div class="card">
+      <h2>3) Résultats</h2>
+      <div class="badges" id="statusBox"></div>
+
+      <div class="grid">
+        <div>
+          <label>Air (mg/L)</label>
+          <div style="font-size:36px;font-weight:800" id="air">0,000</div>
+        </div>
+        <div>
+          <label>Cumul ΔBAC (g/L)</label>
+          <div style="font-size:36px;font-weight:800" id="cum">0,000</div>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:2px">
+        <div>
+          <label>Heure possible après consommation (légal profil)</label>
+          <div style="font-size:32px;font-weight:800" id="okLegal">—</div>
+        </div>
+        <div>
+          <label>Heure possible (prudence)</label>
+          <div style="font-size:32px;font-weight:800" id="okSafe">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4) Graph -->
+    <div class="card">
+      <h2>4) Évolution (taux g/L)</h2>
+      <canvas id="chart" width="800" height="360" aria-label="courbe"></canvas>
+      <div class="legend">Bleu = taux • <span style="color:#ef4444">Rouge plein</span> = seuil légal • <span style="color:var(--dash)">Orange pointillé</span> = prudence</div>
+      <div class="muted">Outil de sensibilisation — ne remplace pas un éthylotest.</div>
+    </div>
+  </div>
+
+<script>
+// ---------- helpers
+const $ = s=>document.querySelector(s);
+const $$ = s=>document.querySelectorAll(s);
+function fmtH(m){ const h=Math.floor(m/60)%24, mi=m%60; return (''+h).padStart(2,'0')+':'+(''+mi).padStart(2,'0') }
+function parseHM(s){ const [h,mi]=s.split(':').map(Number); return (h*60+mi)|0 }
+function clamp(n,a,b){return Math.max(a,Math.min(b,n))}
+
+// ---------- state
+const state = {
+  profil:'Homme',
+  prob:'Non',
+  ate:'Oui',
+  start: parseHM('19:00'),
+  drinks:[], // {t: minutes, cat, qtyLabel, volL, abv, absorbEnd}
+};
+
+// ---------- build hour selects
+function fillHours(sel){
+  sel.innerHTML='';
+  for(let h=0;h<24;h++){
+    for(let q=0;q<4;q++){
+      const v = h*60 + q*15;
+      const opt = document.createElement('option');
+      opt.value = fmtH(v);
+      opt.textContent = fmtH(v);
+      sel.appendChild(opt);
+    }
+  }
+}
+fillHours($('#startTime'));
+fillHours($('#drinkTime'));
+$('#startTime').value = fmtH(state.start);
+$('#drinkTime').value = fmtH((state.start+60)%1440);
+
+// ---------- pills handling
+function makePills(id,initial){
+  const box=$(id);
+  box.querySelectorAll('.pill').forEach(p=>{
+    if(p.dataset.value===initial) p.dataset.active='1';
+    p.addEventListener('click',()=>{
+      box.querySelectorAll('.pill').forEach(x=>x.dataset.active='0');
+      p.dataset.active='1';
+      changed();
+      if(id==="#catPills") refreshQuantites();
+      if(id==="#foodPills") {} // absorption recalculated later
+    });
+  });
+  return ()=> box.querySelector('.pill[data-active="1"]').dataset.value;
+}
+const getProfil = makePills('#profilPills','Homme');
+const getProb   = makePills('#probPills','Non');
+const getAte    = makePills('#foodPills','Oui');
+const getCat    = makePills('#catPills','Bière');
+
+// ---------- quantités par catégorie
+const QTY = {
+  "Bière":[["Galopin (12,5 cl)",0.125],["Demi (25 cl)",0.25],["Bouteille (33 cl)",0.33],["Pinte (50 cl)",0.50],["Grande bouteille (75 cl)",0.75],["Sérieux (1 L)",1.00]],
+  "Vin":[["Verre (12 cl)",0.12],["Petite bouteille (37,5 cl)",0.375],["Bouteille (75 cl)",0.75]],
+  "Cocktail":[["Dose bar (3 cl)",0.03],["Verre soirée (25 cl)",0.25]],
+  "Alcool fort":[["1 dose (3 cl)",0.03],["2 doses (6 cl)",0.06],["3 doses (9 cl)",0.09]],
+  "Sans alcool":[["Verre d’eau (12 cl)",0.12],["Verre soirée (25 cl)",0.25]]
+};
+function refreshQuantites(){
+  const cat=getCat();
+  const sel=$('#quantite');
+  sel.innerHTML='';
+  for(const [label,vol] of QTY[cat]){
+    const opt=document.createElement('option');
+    opt.value = vol;
+    opt.textContent = label;
+    sel.appendChild(opt);
+  }
+  // deg lock for sans alcool
+  const deg = $('#deg');
+  if(cat==="Sans alcool"){ deg.value='0.0'; deg.disabled=true; }
+  else { deg.disabled=false; deg.value=cat==="Bière"?5:(cat==="Vin"?12:(cat==="Cocktail"?10:40)); }
+}
+refreshQuantites();
+
+// ---------- handlers
+$('#startTime').addEventListener('change',()=>{ state.start = parseHM($('#startTime').value); changed(); });
+$('#drinkTime').addEventListener('change',()=>{});
+$('#deg').addEventListener('input',()=>{});
+$('#poids').addEventListener('input',changed);
+$('#btnReset').addEventListener('click',()=>{ state.drinks=[]; renderDrinks(); changed(); });
+$('#btnAdd').addEventListener('click',()=>{
+  const t = parseHM($('#drinkTime').value);
+  const cat = getCat();
+  const volL = parseFloat($('#quantite').value);
+  let abv = parseFloat($('#deg').value);
+  if(cat==="Sans alcool") abv=0.0;
+  const qtyLabel = $('#quantite').selectedOptions[0].textContent;
+  // absorption time
+  const absorbMin = (getAte()==="Oui")?60:30;
+  const absorbEnd = (t + absorbMin)%1440;
+  state.drinks.push({t,cat,qtyLabel,volL,abv,absorbEnd});
+  renderDrinks();
+  changed();
+});
+
+function removeDrink(idx){ state.drinks.splice(idx,1); renderDrinks(); changed(); }
+
+function renderDrinks(){
+  const chips=$('#chips'); chips.innerHTML='';
+  state.drinks.sort((a,b)=>a.t-b.t);
+  state.drinks.forEach((d,i)=>{
+    const el=document.createElement('div');
+    el.className='chip';
+    el.innerHTML = `<strong>${fmtH(d.t)}</strong> · ${d.cat} · ${d.qtyLabel} <span class="x" title="Supprimer">×</span>`;
+    el.querySelector('.x').addEventListener('click',()=>removeDrink(i));
+    chips.appendChild(el);
+  });
+  // table for vitrine (hidden here but kept for dev)
+  const wrap=$('#tableWrap'); const tbody=$('#tbl tbody'); tbody.innerHTML='';
+  if(state.drinks.length){ wrap.style.display='block'; }else wrap.style.display='none';
+  state.drinks.forEach(d=>{
+    const volL=d.volL, g = volL*1000*(d.abv/100)*0.8;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${fmtH(d.t)}</td><td>${d.cat}</td><td>${d.qtyLabel}</td><td>${d.abv.toFixed(1)}</td><td>${volL.toFixed(3)}</td><td>${g.toFixed(1)}</td><td>${fmtH(d.absorbEnd)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ---------- BAC model
+function settings(){
+  const profil=getProfil();
+  const prob=getProb();
+  const r = (profil==="Homme")?0.70:(profil==="Femme"?0.60:0.55); // prudence défavorable
+  const elimPerH = (profil==="Femme")?0.09:0.12; // g/L/h
+  const legal = (prob==="Oui")?0.2:0.5;
+  const prud = Math.max(0, legal-0.05);
+  return {r,elimPerH,legal,prud};
+}
+
+// Build minute grid for 24h from start
+function timeline(){
+  const start = state.start;
+  const times=[]; for(let i=0;i<=24*60;i+=15){ times.push( (start+i)%1440 ); }
+  return times; // array of minutes from 0..1439
+}
+
+// compute BAC curve per 15 min with absorption linear and elimination halted during each drink absorption
+function compute(){
+  const {r,elimPerH,legal,prud}=settings();
+  const w = clamp(parseFloat($('#poids').value)||90,30,180);
+  const step = 15; // minutes
+  const length = 24*60;
+  const offs = []; for(let i=0;i<=length;i+=step) offs.push(i);
+  const series = new Array(offs.length).fill(0);
+  const adds = new Array(offs.length).fill(0);
+  const windows=[];
+  const now = new Date()
+  const currentTime = now.getHours()*60 + now.getMinutes()
+  const current = Math.floor(toOffset(currentTime) / step)
+
+  function toOffset(absMin){
+    let off = absMin - state.start;
+    while(off<0) off+=1440;
+    return off;
+  }
+
+  // distribute each drink as a linear ramp during absorption
+  for(const d of state.drinks){
+    if (d.abv) {
+      const grams = d.volL*1000*(d.abv/100)*0.8;
+      const delta = grams/(w*r);
+      const absorbMin = (getAte()==="Oui")?60:30;
+      const a0 = toOffset(d.t);
+      const a1 = a0 + absorbMin;
+      windows.push([a0,a1]);
+      for(let i=0;i<adds.length-1;i++){
+        const s=offs[i], e=offs[i+1];
+        const overlap = Math.max(0, Math.min(e,a1) - Math.max(s,a0));
+        if(overlap>0){ adds[i] += delta*(overlap/absorbMin); }
+      }
+    }
+  }
+
+  const elimPerStep = settings().elimPerH*(step/60);
+
+  for(let i=0;i<series.length;i++){
+    let val = (i>0?series[i-1]:0) + adds[i];
+    const mid = offs[i]+step/2;
+    const inAbsorb = windows.some(([a0,a1]) => mid>=a0 && mid<a1);
+    if(!inAbsorb) val = Math.max(0, val - elimPerStep);
+    series[i]=val;
+  }
+
+  const abs = offs.map(v => (state.start+v)%1440);
+  // cum delta (theoretical total added if no elimination)
+  let cumDelta=0; for(const d of state.drinks){ const grams = d.volL*1000*(d.abv/100)*0.8; cumDelta += grams/(w*r); }
+  return {abs,series,legal,prud,cumDelta,step,current};
+}
+
+// ---------- drawing
+function draw() {
+  const cvs = $('#chart'), ctx=cvs.getContext('2d');
+  ctx.clearRect(0,0,cvs.width,cvs.height);
+  const W=cvs.width, H=cvs.height, padL=48,padR=16,padT=18,padB=32;
+  const plotW=W-padL-padR, plotH=H-padT-padB;
+  const {abs,series,legal,prud,current} = compute();
+
+  // y scale
+  const maxY = Math.max(1, legal*1.8, ...series)*1.05;
+  const y = v => padT + (1 - v/maxY)*plotH;
+
+  // x scale: 24h -> 0..plotW
+  const x = (i)=> padL + (i/(series.length-1))*plotW;
+
+  // grid
+  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--grid');
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  for(let i=0;i<series.length;i++){
+    if(abs[i]%120===0){ // every 2h
+      const xx=x(i); ctx.moveTo(xx,padT); ctx.lineTo(xx,H-padB);
+    }
+  }
+  ctx.stroke();
+  // y axis marks
+  ctx.fillStyle='#6b7280'; ctx.font='12px system-ui';
+  for(let v=0; v<=maxY; v+=0.2){
+    const yy=y(v); ctx.fillText(v.toFixed(1),6,yy+4);
+    ctx.strokeStyle='#eef2f7'; ctx.beginPath(); ctx.moveTo(padL,yy); ctx.lineTo(W-padR,yy); ctx.stroke();
+  }
+
+  // thresholds
+  // legal
+  ctx.strokeStyle='#ef4444'; ctx.lineWidth=2.5; ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(padL,y(legal)); ctx.lineTo(W-padR,y(legal)); ctx.stroke();
+  // prudence
+  ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--dash'); ctx.lineWidth=2; ctx.setLineDash([6,6]);
+  ctx.beginPath(); ctx.moveTo(padL,y(prud)); ctx.lineTo(W-padR,y(prud)); ctx.stroke();
+  ctx.setLineDash([]);
+  // current
+  ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--success'); ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(x(current),padT); ctx.lineTo(x(current),H-padB); ctx.stroke();
+
+  // curve
+  ctx.strokeStyle='#2563eb'; ctx.lineWidth=2.5; ctx.beginPath();
+  series.forEach((v,i)=>{ const xx=x(i), yy=y(v); if(i===0) ctx.moveTo(xx,yy); else ctx.lineTo(xx,yy); });
+  ctx.stroke();
+
+  // x labels
+  ctx.fillStyle='#111827'; ctx.textAlign='center';
+  for(let i=0;i<series.length;i++){
+    if(abs[i]%120===0){
+      ctx.fillText(fmtH(abs[i]), x(i), H-10);
+    }
+  }
+}
+
+// ---------- results
+function results(){
+  const {series,legal,prud,cumDelta,step,current} = compute();
+  const curr = series[current];
+  const mgL = Math.max(0,curr*0.4);
+  $('#air').textContent = mgL.toFixed(3).replace('.',',');
+  $('#cum').textContent = Math.max(0,cumDelta).toFixed(3).replace('.',',');
+
+  const box = $('#statusBox'); box.innerHTML='';
+  const badge = document.createElement('div'); badge.className='badge ok';
+  let statusTxt = 'Conduite possible';
+  if(curr>=legal){ badge.className='badge nope'; statusTxt='Conduite interdite'; }
+  else if(curr>=prud){ badge.className='badge warn'; statusTxt='Prudence'; }
+  badge.textContent = statusTxt; box.appendChild(badge);
+
+  // earliest time AFTER last absorption end where thresholds are crossed downwards
+  let lastAbsEnd = 0;
+  for(const d of state.drinks){
+    const ate = (getAte()==="Oui")?60:30;
+    let off = d.t - state.start; while(off<0) off+=1440;
+    lastAbsEnd = Math.max(lastAbsEnd, off+ate);
+  }
+  const startIdx = Math.round(lastAbsEnd/step);
+  function hourFromIdx(i){ const m=(state.start+i*step)%1440; return fmtH(m); }
+
+  let legalIdx=null, prudIdx=null, config=settings();
+  for(let i=startIdx;i<series.length;i++){
+    if(legalIdx===null && series[i]<=config.legal) legalIdx=i;
+    if(prudIdx===null && series[i]<=config.prud) prudIdx=i;
+    if(legalIdx!==null && prudIdx!==null) break;
+  }
+  $('#okLegal').textContent = legalIdx===null?'—':hourFromIdx(legalIdx);
+  $('#okSafe').textContent  = prudIdx===null?'—':hourFromIdx(prudIdx);
+}
+
+// ---------- global recompute
+function changed(){ state.profil=getProfil(); state.prob=getProb(); state.ate=getAte(); draw(); results(); }
+
+// init
+changed();
+</script>
+</body>
+</html>
